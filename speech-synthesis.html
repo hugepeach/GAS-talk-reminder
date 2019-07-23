@@ -1,0 +1,26 @@
+<script>
+    /** 音声合成し読み上げる */
+    function speak(response_text) {
+        if (!"speechSynthesis" in window) {
+            alert("このブラウザは音声合成に対応していません。")
+            console.log("このブラウザは音声合成に対応していません。");
+        }
+        var speech = new SpeechSynthesisUtterance();
+        speech.text = response_text;
+        // 発言を作成
+        const response_voice = new SpeechSynthesisUtterance(response_text.value)
+        // 言語 日本語
+        speech.lang = "ja-JP"
+        // 速度 0.1-10
+        speech.rate = 1
+        // 高さ 0-2
+        speech.pitch = 1
+        // 音量 0-1
+        speech.volume = 1
+
+        // textareaに読み上げる文言を書き込む
+        document.getElementById("speak_text").innerHTML = response_text;
+        // 発言を再生 (発言キュー発言に追加)
+        speechSynthesis.speak(speech);
+    }
+</script>

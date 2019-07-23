@@ -1,0 +1,48 @@
+<script>
+    /** 音声認識を行う */
+    function recognize(resolve) {
+        if (!"SpeechRecognition" in window) {
+            alert("ユーザのブラウザは音声認識に対応していません。");
+            console.log("ユーザのブラウザは音声認識に対応していません。");
+        }
+
+        SpeechRecognition = webkitSpeechRecognition || SpeechRecognition;
+        const recognition = new SpeechRecognition();
+
+        // 言語 日本語
+        recognition.lang = "ja-JP";
+        // 認証してる途中でも結果を得る
+        //  recognition.interimResults = true;
+
+        // 認証をし続ける。ただし１分以上沈黙の場合自動停止
+        recognition.continuous = true;
+
+        recognition.onresult = (event) => {
+            var results = event.results;
+            var confidence_value;
+
+            for (var k = event.resultIndex; k < results.length; k++) {
+                confidence_value = results[k][0].confidence;
+
+                //認識確定
+                if (results[k].isFinal) {
+                    if (results[k][0].transcript == "") {
+                        talk_data.request_text = "聞き取りに失敗しました。";
+                    }
+                    // 聞き取った文言をtextareaに書き込む
+                    document.getElementById("recognize_text").innerHTML = results[k][0].transcript;
+                    recognition.stop();
+                    return results[k][0].transcript;
+                }
+            }
+            document.getElementById("recognize_text").innerHTML = results[k][0].transcript;
+            recognition.stop();
+            return results[k][0].transcript;
+        }
+        // 聞き取りを開始
+        recognition.start();
+        // 1分後聞き取りを終了
+        // todo:下記コードはrecognition.continuousが自動で1分で停止するため冗長化も？
+        setTimeout(function () { recognition.stop() }, 1000 * 60);
+    }
+</script>

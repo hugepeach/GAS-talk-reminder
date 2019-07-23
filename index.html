@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <script>
+        /** 15分後に新たなタブを開く */
+        function tm() {
+            // todo:一度開いたタブを消す。
+            setTimeout("window.open('https://script.google.com/macros/s/スプレッドシートのID/exec')", 1000 * 60 * 15);
+        };
+    </script>
+</head>
+
+<body>
+    <p>you (recognize)<br>
+        <textarea id="recognize_text" cols="100">
+                </textarea>
+    </p>
+    <p>bot (Synthesis)<br>
+        <textarea id="speak_text" cols="100">
+                </textarea>
+    </p>
+
+    <!-- それぞれのhtmlをincludeする -->
+    <?!= include('speech-recognition-test'); ?>
+    <?!= include('speech-synthesis-test'); ?>
+
+    <script>
+        var talk_no = "@no1"; // スプレッドシートのdict @no1を最初に探す
+        var talk_no_flag = true; // talk_noを読み取る場合trueとする
+        var init_request_text = "init_data"; // 最初にjsからGASに送る値。初期値はてきとう
+        var request_text = "init_data"; // jsからGASに読み取らせる値。初期値はてきとう
+        var response_text = "init_data"; // GASからjsに読み取らせる値。初期値はてきとう
+        var i = 0; // スプレッドシートのdictの行数。0が1行目にあたる
+        var j = 0; // スプレッドシートのdictの列数。0がA列目にあたる
+        var recog_flag = false; // 音声認識を行う場合trueとする
+
+        // js→GAS→js→GAS...とtalk_dataの値を書き換えやり取りをする。フラグをチェックし処理を終了する
+        var talk_data = {
+            "talk_no": talk_no, "talk_no_flag": talk_no_flag,
+            "init_request_text": init_request_text, "request_text": request_text,
+            "response_text": response_text, "i": i, "j": j,
+            "recog_flag": recog_flag
+        };
+
+        window.onload = function () {
+            // 現在時刻で取り組んでいるべきタスク名をスプレッドシートから取得
+            google.script.run.withSuccessHandler(function (task_title) {
+                talk_data.init_request_text = task_title;
+                var loop_break_count = 1
+
+                /** jsからGASに値を送る */
+                function requestGAS(talk_data) {
+                    if (loop_break_count > 20) {
+                        // 10回以上再帰的に関数が呼ばれた場合処理を異常とし中断する
+                        throw new Error('exit');
+                    }
+                    loop_break_count++;
+                    google.script.run.withSuccessHandler(responseGAS).findTalkDict(talk_data);
+                    // todo:失敗時の処理追記した方がいいかも？
+                }
+
+                /** GASから帰ってきた音声を読み上げ、場合によって音声を聞き取り再帰的にrequestGASを呼び出す */
+                function responseGAS(talk_data) {
+                    console.log("bot (Synthesis): " + talk_data.response_text);
+                    speak(talk_data.response_text);
+
+                    if (talk_data.talk_no_flag == true) {
+                        // dictのNoを変更・ループする場合(@no1→@no2や、@no1→@no1など)
+                        requestGAS(talk_data);
+                        return false;
+                    }
+
+                    if (talk_data.recog_flag == false) {
+                        // return falseをして音声認識せず処理を中断
+                        return false;
+                    }
+
+                    var loop_break_count2 = 0;
+                    document.getElementById("recognize_text").innerHTML = "";
+                    recognize();
+
+                    // 65秒以内にrecognize()により音声認識がされないかチェックする
+                    var timer = setInterval(function () {
+                        // 画面のbotのtextareaを1秒ごとにチェックし、値が入ったらrequestGAS()を実行する
+                        if (document.getElementById("recognize_text").value != "") {
+                            talk_data.request_text = document.getElementById("recognize_text").value;
+                            console.log("you (recognize): " + talk_data.request_text);
+                            requestGAS(talk_data);
+                            clearInterval(timer);
+                            return false;
+                        }
+                        // 音声認識の待ち時間を1秒ごとにconsoleへ出力
+                        console.log("音声認識待ち " + loop_break_count2 + "s 経過");
+
+                        if (loop_break_count2 >= 65) {
+                            // 65秒経過した場合処理を終了
+                            clearInterval(timer);
+                            console.log("you (recognize): " + "沈黙が1分を経過したため処理を終了します");
+                            speak("沈黙が1分を経過したため処理を終了します");
+                            return false;
+                        }
+                        loop_break_count2++;
+                    }, 1000);
+
+                    return false;
+                }
+
+                // try catchでexitの代用をする
+                try {
+                    requestGAS(talk_data);
+                } catch (e) {
+                    console.log(e.message);
+                }
+
+            }).findTaskNow();
+            tm();
+        }
+    </script>
+</body>
+
+</html>
