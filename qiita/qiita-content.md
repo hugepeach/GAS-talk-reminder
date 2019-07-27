@@ -56,7 +56,7 @@ chrome(上で動くjs)とGASで、PCで音声認識・音声合成するプロ�
 - Windows(実行環境)
 - マイク・スピーカー(PC内臓)
 
-todo:picture d
+todo:picture
 
 ## 2. スプレッドシートの作成
 
@@ -66,7 +66,7 @@ todo:picture d
 
 ② GASのプロジェクトを立ち上げる  
 
-todo:picture d
+todo:picture
 
 ### 2-1. カレンダー記録用シート
 
