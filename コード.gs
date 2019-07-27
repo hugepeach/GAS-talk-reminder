@@ -163,10 +163,19 @@ function replaceRecognizeText(response_text, request_text) {
 
 /** 音声合成した文言をスプレッドシートのlogシートに記録 */
 function speakLogWrite(talk_no, response_text) {
+    var d = new Date();
+    var y = d.getFullYear();
+    var mon = d.getMonth() + 1;
+    var d2 = d.getDate();
+    var h = d.getHours();
+    var min = d.getMinutes();
+    var s = d.getSeconds();
+    var now = y+"/"+mon+"/"+d2+" "+h+":"+min+":"+s;
+
     // 以下をシートの最終行に追記
     sheet_log.appendRow(
         [
-            Utilities.formatDate(new Date(), "Asia/Tokyo", "yyyyMMdd: hhmmss"), // 現在時刻
+            now, // 現在時刻
             talk_no, // @noX
             "response",
             response_text, // 音声合成した文言
@@ -176,10 +185,19 @@ function speakLogWrite(talk_no, response_text) {
 
 /** 音声認識した文言をスプレッドシートのlogシートに記録 */
 function recognizeLogWrite(talk_no, request_text) {
+    var d = new Date();
+    var y = d.getFullYear();
+    var mon = d.getMonth() + 1;
+    var d2 = d.getDate();
+    var h = d.getHours();
+    var min = d.getMinutes();
+    var s = d.getSeconds();
+    var now = y+"/"+mon+"/"+d2+" "+h+":"+min+":"+s;
+
     // 以下をシートの最終行に追記
     sheet_log.appendRow(
         [
-            Utilities.formatDate(new Date(), "Asia/Tokyo", "yyyyMMdd: hhmmss"), // 現在時刻
+            now, // 現在時刻
             talk_no, // @noX
             "request",
             request_text, // 音声認識した文言
