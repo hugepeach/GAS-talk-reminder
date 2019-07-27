@@ -6,9 +6,8 @@
             console.log("このブラウザは音声合成に対応していません。");
         }
         var speech = new SpeechSynthesisUtterance();
-        speech.text = response_text;
         // 発言を作成
-        const response_voice = new SpeechSynthesisUtterance(response_text.value)
+        speech.text = response_text;
         // 言語 日本語
         speech.lang = "ja-JP"
         // 速度 0.1-10
